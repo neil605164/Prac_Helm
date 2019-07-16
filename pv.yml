@@ -1,0 +1,89 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ssd-01
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-ssd
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+
+---
+
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ssd-02
+provisioner: kubernetes.io/gce-pd
+parameters:
+  type: pd-ssd
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv-01
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  # - ReadWriteMany
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: ssd-01
+  # hostPath:
+  #   path: /home/hsieh/tmp_test/
+  local:
+    path: /home/hsieh/tmp_test/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - hsieh
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv-02
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+  # - ReadWriteMany
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain 
+  storageClassName: ssd-02
+  # hostPath:
+  #   path: /home/hsieh/tmp_test02/
+  local:
+    path: /home/hsieh/tmp_test02/
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - hsieh
+
+---
+
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: master-mariadb
+# spec:
+#   storageClassName: ssd-01
+#   accessModes:
+#   - ReadWriteMany
+#   resources:
+#     requests:
+#       storage: 5Gi
